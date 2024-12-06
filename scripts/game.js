@@ -1,8 +1,8 @@
 const spaceContainer = document.querySelector(".spaceContainer");
 const spaceShip = document.querySelector(".spaceship");
 const playerName = document.querySelector(".playerName");
-const life = document.querySelector(".life");
-const score = document.querySelector(".score");
+const playerLife = document.querySelector(".life");
+const playerScore = document.querySelector(".score");
 const gameOverButton = document.querySelector(".gameOver button");
 
 const spaceContainerWidth = spaceContainer.offsetWidth;
@@ -19,6 +19,11 @@ const timeToEndSpecialShot = 30 * 1000;
 let canShoot = true;
 let specialShotIsActive = false;
 let shoot = 25; // -25 enemy life
+
+let enemies = [];
+let isGameOver = false;
+let life = 100;
+let score = 1000;
 
 let positionX = 0;
 let positionY = 0;
@@ -94,10 +99,15 @@ class EnemySpaceship {
     this.life = enemyNumber == 1 ? 100 : enemyNumber == 2 ? 300 : 600;
     this.score = enemyNumber == 1 ? 250 : enemyNumber == 2 ? 500 : 1000;
     this.damage = enemyNumber == 1 ? 20 : enemyNumber == 2 ? 30 : 50;
-    this.flyCategory = Math.random() * 6 - 3;
+    this.flyCategory = Math.random() * 0.5 - 3; //positive or negative random number
 
     this.x = 0;
     this.y = 0;
+    this.baseX = Math.ceil(
+      Math.random() * spaceContainerWidth - spaceshipWidth
+    );
+    this.speed =
+      (Math.ceil(Math.random() * 5 + 5) / 10) * enemiesDifficultyLevel;
 
     this.offScreenTopElementDiscount = 200; // px
 
@@ -116,6 +126,23 @@ class EnemySpaceship {
 
     document.querySelector(".enemies").appendChild(this.element);
   }
+
+  fly() {
+    this.y += this.speed;
+    this.x =
+      ((Math.cos((this.y / 100) * this.flyCategory) * score) / 100) *
+        this.flyCategory +
+      this.baseX;
+
+    this.element.style.transform = `translate3d(${this.x}px, ${this.y}px, 0)`;
+
+    if (
+      this.y - this.offScreenTopElementDiscount > spaceContainerHeigth ||
+      this.life <= 0
+    ) {
+      this.element.remove();
+    }
+  }
 }
 
 function createEnemies() {
@@ -127,7 +154,7 @@ function createEnemies() {
     Math.random() * 1000 + 1000 / enemiesDifficultyLevel
   );
 
-  setInterval(() => {
+  const intervalID = setInterval(() => {
     let randomEnemyType = Math.ceil(Math.random() * 100);
 
     if (randomEnemyType <= 50) {
@@ -137,16 +164,29 @@ function createEnemies() {
     } else if (randomEnemyType <= 95) {
       randomEnemyType = 3; //15%
     } else if (randomEnemyType <= 100) {
+      return;
       //5%
     }
 
+    enemies.push(
       new EnemySpaceship(
         randomEnemyType,
         `../images/enemy${randomEnemyType}.gif`,
         `enemy${randomEnemyType}`,
         `enemy${randomEnemyType}`
       )
+    );
+
+    if (isGameOver) clearInterval(intervalID);
   }, delayIntervalTime);
+}
+
+function animateFlyEnemies() {
+  enemies.forEach((enemy) => {
+    enemy.fly();
+  });
+
+  requestAnimationFrame(animateFlyEnemies);
 }
 
 function spaceshipShootRemove() {
@@ -222,9 +262,26 @@ function setPLayerName() {
   playerName.innerHTML = localStorage.getItem("@spaceshipGame:playerName");
 }
 
+function setPlayerLife(lifePoint) {
+  life = lifePoint;
+  playerLife.innerHTML = `Nave: ${life}%`;
+
+  if (life < 30) {
+    playerLife.style.color = "red";
+  } else {
+    playerLife.style.color = "var(--color-light-200)";
+  }
+}
+
+function setPlayerScore(points) {
+  score += points;
+  playerScore.innerHTML = String(score).padStart(9, "0");
+}
+
 document.addEventListener("keydown", gameControls);
 document.addEventListener("keyup", gameControlsCancel);
 
 setPLayerName();
 spaceshipeMove();
 createEnemies();
+animateFlyEnemies();
