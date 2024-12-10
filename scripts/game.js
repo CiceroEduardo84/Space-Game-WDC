@@ -18,12 +18,13 @@ const timeToEndSpecialShot = 30 * 1000;
 
 let canShoot = true;
 let specialShotIsActive = false;
-let shoot = 25; // -25 enemy life
+let shootPower = 25; // -25 enemy life
 
 let enemies = [];
 let isGameOver = false;
 let life = 100;
-let score = 1000;
+let score = 0;
+let explosionSoundVolume = 0.4;
 
 let positionX = 0;
 let positionY = 0;
@@ -97,9 +98,9 @@ class EnemySpaceship {
   constructor(enemyNumber = 1, src, alt, className) {
     this.enemyNumber = enemyNumber;
     this.life = enemyNumber == 1 ? 100 : enemyNumber == 2 ? 300 : 600;
-    this.score = enemyNumber == 1 ? 250 : enemyNumber == 2 ? 500 : 1000;
+    this.points = enemyNumber == 1 ? 250 : enemyNumber == 2 ? 500 : 1000;
     this.damage = enemyNumber == 1 ? 20 : enemyNumber == 2 ? 30 : 50;
-    this.flyCategory = Math.random() * 0.5 - 3; //positive or negative random number
+    this.flyCategory = Math.random() * 0.5 - 3; // positivo ou negativo aleatório
 
     this.x = 0;
     this.y = 0;
@@ -110,6 +111,10 @@ class EnemySpaceship {
       (Math.ceil(Math.random() * 5 + 5) / 10) * enemiesDifficultyLevel;
 
     this.offScreenTopElementDiscount = 200; // px
+
+    // Pré-calculo de flyFactor para evitar cálculos repetidos
+    this.flyFactor = this.flyCategory / 100;
+    this.scoreFactor = score / 100;
 
     this.#createElement(src, alt, className);
   }
@@ -127,21 +132,42 @@ class EnemySpaceship {
     document.querySelector(".enemies").appendChild(this.element);
   }
 
-  fly() {
+  fly(frameCount) {
     this.y += this.speed;
-    this.x =
-      ((Math.cos((this.y / 100) * this.flyCategory) * score) / 100) *
-        this.flyCategory +
-      this.baseX;
+
+    // Atualizar x apenas a cada 3 frames para reduzir o custo computacional
+    if (frameCount % 2 === 0) {
+      this.x =
+        Math.cos(this.y * this.flyFactor) *
+          this.scoreFactor *
+          this.flyCategory +
+        this.baseX;
+    }
 
     this.element.style.transform = `translate3d(${this.x}px, ${this.y}px, 0)`;
 
-    if (
-      this.y - this.offScreenTopElementDiscount > spaceContainerHeigth ||
-      this.life <= 0
-    ) {
+    if (this.y - this.offScreenTopElementDiscount > spaceContainerHeigth) {
       this.element.remove();
     }
+  }
+
+  destroyEnemySpaceship() {
+    this.element.src = `../images/explosion2.gif`;
+    enemies = enemies.filter((enemy) => enemy != this);
+
+    let explosionSound;
+    if (this.enemyNumber == 3) {
+      explosionSound = new Audio("../audios/explosion2.mp3");
+    } else {
+      explosionSound = new Audio("../audios/explosion1.mp3");
+    }
+
+    explosionSound.volume = explosionSoundVolume;
+    explosionSound.play();
+
+    setTimeout(() => {
+      this.element.remove();
+    }, 1000);
   }
 }
 
@@ -181,12 +207,89 @@ function createEnemies() {
   }, delayIntervalTime);
 }
 
+let frameCount = 0;
+
 function animateFlyEnemies() {
+  frameCount++;
+
   enemies.forEach((enemy) => {
-    enemy.fly();
+    enemy.fly(frameCount); // Passa o frameCount para cada inimigo
   });
 
   requestAnimationFrame(animateFlyEnemies);
+}
+
+// function animateFlyEnemies() {
+//   enemies.forEach((enemy) => {
+//     enemy.fly();
+//   });
+
+//   requestAnimationFrame(animateFlyEnemies);
+// }
+
+function collisionEnemieShot() {
+  const enemiesDOM = document.querySelectorAll(".enemies img");
+  const shootsDOM = document.querySelectorAll(".shot");
+
+  enemiesDOM.forEach((enemyDOM) => {
+    const enemy = enemies.find((enemy) => enemy.element == enemyDOM);
+
+    if (!enemy) return;
+
+    shootsDOM.forEach((shootDOM) => {
+      const shootRect = shootDOM.getBoundingClientRect();
+      const enemyRect = enemyDOM.getBoundingClientRect();
+
+      let discountCollision = enemies.enemyNumber == 3 ? 40 : 10;
+      if (
+        enemyRect.left < shootRect.right &&
+        enemyRect.right > shootRect.left &&
+        enemyRect.top + discountCollision < shootRect.bottom &&
+        enemyRect.bottom - discountCollision > shootRect.top
+      ) {
+        shootDOM.remove();
+        enemy.life -= Math.ceil(shootPower * (Math.random() + 1)); // ex: shootPower * 1.2
+
+        setPlayerScore(specialShotIsActive ? 20 : 10);
+
+        if (enemy.life <= 0) {
+          //destroy
+          enemy.destroyEnemySpaceship();
+          setPlayerScore(enemy.points);
+        }
+      }
+    });
+  });
+
+  requestAnimationFrame(collisionEnemieShot);
+}
+
+function collisionEnemiesWithSpaceship() {
+  const enemiesDOM = document.querySelectorAll(".enemies img");
+  const spaceshipRect = spaceShip.getBoundingClientRect();
+
+  enemiesDOM.forEach((enemyDOM) => {
+    const enemy = enemies.find((enemy) => enemy.element == enemyDOM);
+    if (!enemy) return;
+
+    const enemyRect = enemyDOM.getBoundingClientRect();
+
+    let discountCollision = enemies.enemyNumber == 3 ? 40 : 10;
+    if (
+      spaceshipRect.left + discountCollision < enemyRect.right &&
+      spaceshipRect.right - discountCollision > enemyRect.left &&
+      spaceshipRect.top + discountCollision * 2 < enemyRect.bottom &&
+      spaceshipRect.bottom - discountCollision * 2 > enemyRect.top
+    ) {
+      if (enemy.element.className == "chargeSpecialShot") {
+        //special shot
+      } else {
+        enemy.destroyEnemySpaceship();
+      }
+    }
+  });
+
+  requestAnimationFrame(collisionEnemiesWithSpaceship);
 }
 
 function spaceshipShootRemove() {
@@ -285,3 +388,5 @@ setPLayerName();
 spaceshipeMove();
 createEnemies();
 animateFlyEnemies();
+collisionEnemieShot();
+collisionEnemiesWithSpaceship();
