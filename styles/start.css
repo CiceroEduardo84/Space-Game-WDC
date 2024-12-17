@@ -41,7 +41,7 @@
 
     &:hover {
       cursor: pointer;
-      filter: brightness(1.05);
+      filter: brightness(1.1);
     }
   }
 
@@ -56,4 +56,9 @@
       text-decoration: underline;
     }
   }
+}
+
+.test {
+  background: red;
+  display: block;
 }
