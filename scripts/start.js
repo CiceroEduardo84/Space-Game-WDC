@@ -1,7 +1,3 @@
-const inputName = document.querySelector("#name");
-const newGameForm = document.querySelector("#newGameForm");
-const buttonRank = document.querySelector(".buttonRank");
-
 function handleSubmitNewGame(event) {
   event.preventDefault();
   localStorage.setItem("@spaceshipGame:playerName", inputName.value);
@@ -9,9 +5,13 @@ function handleSubmitNewGame(event) {
   window.location.href = "pages/game.html";
 }
 
-function navigateRank() {
+function navigateToRank() {
   window.location.href = "pages/rank.html";
 }
 
+const inputName = document.querySelector("#name");
+const newGameForm = document.querySelector("#newGameForm");
+const buttonRank = document.querySelector(".buttonRank");
+
 newGameForm.addEventListener("submit", handleSubmitNewGame);
-buttonRank.addEventListener("click", navigateRank);
+buttonRank.addEventListener("click", navigateToRank);

@@ -5,15 +5,13 @@ function createBodyTableRank() {
   if (storageRank) {
     rankSorted = storageRank
       .sort((a, b) => b.score - a.score)
-      .filter((_v, index) => index < 10);
+      .filter((_rank, index) => index < 10);
   }
-
-  const bodyTableRank = document.querySelector(".tableRank tbody");
 
   bodyTableRank.innerHTML = "";
   for (let i = 0; i < 10; i++) {
     bodyTableRank.innerHTML += `
-     <tr>
+      <tr>
         <td>${i + 1}</td>
         <td>${rankSorted ? rankSorted[i]?.name || "" : ""}</td>
         <td>${rankSorted ? rankSorted[i]?.score || "" : ""}</td>
@@ -27,6 +25,8 @@ function backPage() {
 }
 
 const backButton = document.querySelector(".backButton");
+const bodyTableRank = document.querySelector(".tableRank tbody");
+
 backButton.addEventListener("click", backPage);
 
 createBodyTableRank();

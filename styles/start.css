@@ -1,4 +1,4 @@
-@import url(reset.css);
+@import url(./reset.css);
 
 .startGameContainer {
   margin-top: 3.2rem;
@@ -6,6 +6,7 @@
   display: grid;
   place-content: center;
   gap: 2.4rem;
+
   position: absolute;
   top: 50%;
   left: 50%;
@@ -14,11 +15,13 @@
   & h1 {
     text-align: center;
     font-size: 2.4rem;
+    text-shadow: 1px 1px 2px var(--color-dark-400);
     color: var(--color-secondary-400);
   }
 
   & img {
     width: 100%;
+    filter: drop-shadow(2px 2px 2px black);
   }
 
   & input {
@@ -32,6 +35,7 @@
     width: 100%;
     padding: 1.6rem;
     border-radius: 0.8rem;
+    text-shadow: 1px 1px 2px var(--color-dark-400);
     background: linear-gradient(
       200deg,
       var(--color-primary-400),
@@ -41,7 +45,7 @@
 
     &:hover {
       cursor: pointer;
-      filter: brightness(1.1);
+      filter: brightness(1.05);
     }
   }
 
@@ -50,15 +54,11 @@
     margin: 0 auto;
     display: block;
     padding: 1.6rem;
-
-    &:hover {
-      cursor: pointer;
-      text-decoration: underline;
-    }
+    border-radius: 8px;
   }
-}
 
-.test {
-  background: red;
-  display: block;
+  & .buttonRank:hover {
+    cursor: pointer;
+    text-decoration: underline;
+  }
 }

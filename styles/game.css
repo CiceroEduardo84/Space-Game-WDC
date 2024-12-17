@@ -6,7 +6,7 @@
   width: 100%;
 
   &:hover {
-    /* cursor: none; */
+    cursor: none;
   }
 
   header {
@@ -18,10 +18,12 @@
     div,
     span {
       font-weight: 400;
+      text-shadow: 1px 1px 2px var(--color-dark-400);
     }
   }
 
   & .spaceship {
+    filter: drop-shadow(0px 0px 2px var(--color-dark-400));
     background: url(../images/spaceship3.gif);
     background-repeat: no-repeat;
     background-position: center;
@@ -66,14 +68,14 @@
 .chargeSpecialShot {
   position: absolute;
   z-index: 1;
-  width: 2.4rem;
-  height: 2.4rem;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, 50%);
+  width: 2.4rem;
+  height: 2.4rem;
   aspect-ratio: 1/1;
   background-size: cover;
-  animation: chargeSpecialShotAnimation 0.8s infinite ease-in-out;
+  animation: chargeSpecialShotAnimation 800ms infinite ease-in-out;
 }
 
 .enemies {
@@ -100,11 +102,11 @@
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   gap: 2.4rem;
-  background: #0008;
+  background: var(--color-dark-400a);
   height: 100%;
   width: 100%;
   display: none;
@@ -119,5 +121,10 @@
     border-radius: 0.8rem;
     background: var(--color-light-200);
     color: var(--color-dark-400);
+
+    &:hover {
+      transition: filter 300ms;
+      background: var(--color-light-300);
+    }
   }
 }
